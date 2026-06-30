@@ -1,6 +1,10 @@
 # Clip Studio
 
+[![GitHub](https://img.shields.io/github/stars/xdutsuay/clip-studio?style=social)](https://github.com/xdutsuay/clip-studio)
+
 Lightweight CLI war room for trending-audio shorts, LinkedIn carousels, and short-form export.
+
+**Repo:** https://github.com/xdutsuay/clip-studio
 
 ## Install (clip path only — no Docker, no torch)
 
