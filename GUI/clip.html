@@ -1,0 +1,112 @@
+{% extends "layout.html" %}
+{% block main %}
+
+<main>
+    <div class="album py-4 bg-light">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6 mb-4">
+                    <h4 class="mb-3">New clip</h4>
+                    <form id="clip-form" method="post" action="{{ url_for('clip_generate') }}" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label for="audio">Audio track</label>
+                            <select class="form-control" id="audio" name="audio" required>
+                                <option value="">— select from assets/audio —</option>
+                                {% for a in audio_files %}
+                                <option value="{{ a }}">{{ a }}</option>
+                                {% endfor %}
+                            </select>
+                            <small class="form-text text-muted">Or upload below</small>
+                            <input type="file" class="form-control-file mt-2" name="audio_upload" accept="audio/*">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="hook">Hook (on-screen text)</label>
+                            <input type="text" class="form-control" id="hook" name="hook" maxlength="120"
+                                placeholder="Glue vs EMR: what I'd pick in 2026" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="topic">Topic (optional — LLM generates slides)</label>
+                            <input type="text" class="form-control" id="topic" name="topic"
+                                placeholder="Leave empty if you only need the hook">
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="theme">Theme</label>
+                                <select class="form-control" id="theme" name="theme">
+                                    <option value="tech_insight">Tech insight</option>
+                                    <option value="job_approach">Job approach</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="duration">Max duration (sec)</label>
+                                <input type="number" class="form-control" id="duration" name="duration"
+                                    min="3" max="60" placeholder="60">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="background_file">Background video (local — fast)</label>
+                            <select class="form-control" id="background_file" name="background_file">
+                                <option value="">— optional local file —</option>
+                                {% for b in local_backgrounds %}
+                                <option value="{{ b }}">{{ b }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="background">Or catalog background (downloads once)</label>
+                            <select class="form-control" id="background" name="background">
+                                <option value="">— random if empty —</option>
+                                {% for key in backgrounds %}
+                                <option value="{{ key }}">{{ key }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" id="generate-btn">Generate clip</button>
+                    </form>
+
+                    <pre id="log-output" class="mt-3 p-2 bg-dark text-light small" style="max-height:200px;overflow:auto;display:none;"></pre>
+                </div>
+
+                <div class="col-lg-6 mb-4">
+                    <h4 class="mb-3">Recent clips</h4>
+                    <div id="clips-list">
+                        {% if clips %}
+                        <ul class="list-group">
+                            {% for c in clips %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>{{ c.name }}</span>
+                                <a href="/results/{{ c.path }}" class="btn btn-sm btn-outline-primary" download>Download</a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <p class="text-muted">No clips yet. Generate your first one.</p>
+                        {% endif %}
+                    </div>
+
+                    <hr>
+                    <h5>Carousel → LinkedIn</h5>
+                    <p class="small text-muted">Builds PDF from <code>export/manifest.json</code> and pushes to linkedin-growth-engine.</p>
+                    <form method="post" action="{{ url_for('clip_carousel') }}">
+                        <button type="submit" class="btn btn-outline-success btn-sm">Export PDF + push LGE</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    $("#clip-form").on("submit", function () {
+        $("#generate-btn").prop("disabled", true).text("Rendering…");
+        $("#log-output").show().text("Running ffmpeg…");
+    });
+</script>
+
+{% endblock %}

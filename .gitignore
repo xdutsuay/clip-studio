@@ -233,6 +233,12 @@ fabric.properties
 
 assets/temp
 assets/backgrounds
+assets/audio/*
+!assets/audio/.gitkeep
+export/*
+!export/.gitkeep
+!export/shortform/.gitkeep
+graphify-out/
 /.vscode
 out
 .DS_Store

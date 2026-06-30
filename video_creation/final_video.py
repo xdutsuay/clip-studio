@@ -18,6 +18,7 @@ from rich.progress import track
 from utils import settings
 from utils.cleanup import cleanup
 from utils.console import print_step, print_substep
+from utils.ffmpeg_codec import video_encode_args
 from utils.fonts import getheight
 from utils.id import extract_id
 from utils.thumbnail import create_thumbnail
@@ -92,12 +93,7 @@ def prepare_background(reddit_id: str, W: int, H: int) -> str:
         .output(
             output_path,
             an=None,
-            **{
-                "c:v": "h264_nvenc",
-                "b:v": "20M",
-                "b:a": "192k",
-                "threads": multiprocessing.cpu_count(),
-            },
+            **video_encode_args(),
         )
         .overwrite_output()
     )
@@ -437,12 +433,7 @@ def make_final_video(
                 final_audio,
                 path,
                 f="mp4",
-                **{
-                    "c:v": "h264_nvenc",
-                    "b:v": "20M",
-                    "b:a": "192k",
-                    "threads": multiprocessing.cpu_count(),
-                },
+                **video_encode_args(),
             ).overwrite_output().global_args("-progress", progress.output_file.name).run(
                 quiet=True,
                 overwrite_output=True,
@@ -467,12 +458,7 @@ def make_final_video(
                     audio,
                     path,
                     f="mp4",
-                    **{
-                        "c:v": "h264_nvenc",
-                        "b:v": "20M",
-                        "b:a": "192k",
-                        "threads": multiprocessing.cpu_count(),
-                    },
+                **video_encode_args(),
                 ).overwrite_output().global_args("-progress", progress.output_file.name).run(
                     quiet=True,
                     overwrite_output=True,

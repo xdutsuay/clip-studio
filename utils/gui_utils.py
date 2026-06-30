@@ -125,23 +125,31 @@ def modify_settings(data: dict, config_load, checks: dict):
     return get_config(config_load)
 
 
+BACKGROUND_VIDEOS_PATH = Path("utils/background_videos.json")
+
+
+def _load_background_videos() -> dict:
+    with open(BACKGROUND_VIDEOS_PATH, encoding="utf-8") as backgrounds:
+        data = json.load(backgrounds)
+    data.pop("__comment", None)
+    return data
+
+
 # Delete background video
 def delete_background(key):
-    # Read backgrounds.json
-    with open("utils/backgrounds.json", "r", encoding="utf-8") as backgrounds:
-        data = json.load(backgrounds)
+    data = _load_background_videos()
 
-    # Remove background from backgrounds.json
-    with open("utils/backgrounds.json", "w", encoding="utf-8") as backgrounds:
+    with open(BACKGROUND_VIDEOS_PATH, "w", encoding="utf-8") as backgrounds:
         if data.pop(key, None):
             json.dump(data, backgrounds, ensure_ascii=False, indent=4)
         else:
             flash("Couldn't find this background. Try refreshing the page.", "error")
             return
 
-    # Remove background video from ".config.template.toml"
     config = tomlkit.loads(Path("utils/.config.template.toml").read_text())
-    config["settings"]["background"]["background_choice"]["options"].remove(key)
+    options = config["settings"]["background"]["background_video"]["options"]
+    if key in options:
+        options.remove(key)
 
     with Path("utils/.config.template.toml").open("w") as toml_file:
         toml_file.write(tomlkit.dumps(config))
@@ -181,30 +189,25 @@ def add_background(youtube_uri, filename, citation, position):
     filename = filename.replace(" ", "_")
 
     # Check if the background doesn't already exist
-    with open("utils/backgrounds.json", "r", encoding="utf-8") as backgrounds:
-        data = json.load(backgrounds)
+    data = _load_background_videos()
 
-        # Check if key isn't already taken
-        if filename in list(data.keys()):
-            flash("Background video with this name already exist!", "error")
-            return
+    if filename in list(data.keys()):
+        flash("Background video with this name already exist!", "error")
+        return
 
-        # Check if the YouTube URI isn't already used under different name
-        if youtube_uri in [data[i][0] for i in list(data.keys())]:
-            flash("Background video with this YouTube URI is already added!", "error")
-            return
+    if youtube_uri in [data[i][0] for i in list(data.keys())]:
+        flash("Background video with this YouTube URI is already added!", "error")
+        return
 
-    # Add background video to json file
-    with open("utils/backgrounds.json", "r+", encoding="utf-8") as backgrounds:
-        data = json.load(backgrounds)
+    data[filename] = [youtube_uri, filename + ".mp4", citation, position]
 
-        data[filename] = [youtube_uri, filename + ".mp4", citation, position]
-        backgrounds.seek(0)
+    with open(BACKGROUND_VIDEOS_PATH, "w", encoding="utf-8") as backgrounds:
         json.dump(data, backgrounds, ensure_ascii=False, indent=4)
 
-    # Add background video to ".config.template.toml"
     config = tomlkit.loads(Path("utils/.config.template.toml").read_text())
-    config["settings"]["background"]["background_choice"]["options"].append(filename)
+    options = config["settings"]["background"]["background_video"]["options"]
+    if filename not in options:
+        options.append(filename)
 
     with Path("utils/.config.template.toml").open("w") as toml_file:
         toml_file.write(tomlkit.dumps(config))
